@@ -1,10 +1,6 @@
-import React, { useEffect } from "react";
-import { trackEvent } from "../utils/tracker";
+import React from "react";
 
 export default function About() {
-  useEffect(() => {
-    trackEvent("page_view", { page: "About" });
-  }, []);
 
   return (
     <div className="max-w-6xl mx-auto bg-gray-800 rounded-xl p-8 shadow-lg">

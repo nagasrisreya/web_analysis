@@ -1,13 +1,7 @@
-import React, { useEffect } from "react";
-import { trackEvent } from "../utils/tracker";
+import React from "react";
 
 export default function Product() {
-  useEffect(() => {
-    trackEvent("page_view", { page: "Product" });
-  }, []);
-
   const handleClick = () => {
-    trackEvent("button_click", { label: "Add to Cart" });
     alert("Product added to cart!");
   };
 
@@ -39,7 +33,6 @@ export default function Product() {
           <p className="text-gray-300 mb-4">Revolutionary technology</p>
           <button
             onClick={() => {
-              trackEvent("button_click", { label: "Add Gadget to Cart" });
               alert("Gadget added to cart!");
             }}
             className="w-full px-4 py-2 bg-green-600 hover:bg-green-500 rounded-lg font-medium transition-colors duration-200"
@@ -53,7 +46,6 @@ export default function Product() {
           <p className="text-gray-300 mb-4">Professional grade equipment</p>
           <button
             onClick={() => {
-              trackEvent("button_click", { label: "Add Tool to Cart" });
               alert("Tool added to cart!");
             }}
             className="w-full px-4 py-2 bg-purple-600 hover:bg-purple-500 rounded-lg font-medium transition-colors duration-200"

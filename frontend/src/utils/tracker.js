@@ -61,9 +61,4 @@ export const initTracker = () => {
   });
 };
 
-/**
- * Manual event trigger (for custom events)
- */
-export async function trackEvent(type, details = {}) {
-  await sendEvent(type, details);
-}
+

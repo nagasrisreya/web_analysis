@@ -92,7 +92,7 @@ function App() {
         <div className="max-w-7xl mx-auto px-6 py-8">
           <header className="text-center mb-8">
             <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent mb-4">
-              📈 Big Data Web Analytics Demo
+              📈 Big Data Web Analytics
             </h1>
             <p className="text-gray-300 text-lg">Track user interactions and page analytics in real-time</p>
           </header>
@@ -124,29 +124,7 @@ function App() {
             </Link>
           </nav>
 
-          <div className="bg-gray-800 rounded-xl p-6 mb-8 shadow-lg">
-            <h2 className="text-2xl font-semibold mb-4 text-center">Send Custom Event</h2>
-            <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
-              <input
-                placeholder="Event Type (e.g. custom_event)"
-                value={type}
-                onChange={(e) => setType(e.target.value)}
-                className="px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 focus:border-blue-500 focus:outline-none text-white placeholder-gray-400 flex-1 max-w-xs"
-              />
-              <input
-                placeholder="Data (optional)"
-                value={data}
-                onChange={(e) => setData(e.target.value)}
-                className="px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 focus:border-blue-500 focus:outline-none text-white placeholder-gray-400 flex-1 max-w-xs"
-              />
-              <button
-                onClick={sendEvent}
-                className="px-6 py-2 bg-green-600 hover:bg-green-500 rounded-lg font-medium transition-colors duration-200"
-              >
-                Send Event
-              </button>
-            </div>
-          </div>
+          
 
           <PageTrackerWrapper />
         </div>

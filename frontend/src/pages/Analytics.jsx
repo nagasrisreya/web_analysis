@@ -16,6 +16,14 @@ export default function Analytics() {
     return mapping[page] || page;
   };
 
+  // Function to format seconds into hr:min:sec
+  const formatTime = (seconds) => {
+    const hrs = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
   useEffect(() => {
     const fetchAnalytics = async () => {
       try {
@@ -79,7 +87,7 @@ export default function Analytics() {
           />
           <AnalyticsCard
             title="Avg Time on Most Visited"
-            value={`${avgTimeOnMostVisited}s`}
+            value={formatTime(parseFloat(avgTimeOnMostVisited))}
             color="bg-purple-600/30 border border-purple-400"
           />
         </div>
