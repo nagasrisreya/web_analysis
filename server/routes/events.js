@@ -136,6 +136,10 @@ router.get("/analytics", async (req, res) => {
       }
 
       const p = d.page || d.url || r.page || d.path || "unknown";
+
+      // Skip analytics page from stats calculation
+      if (p === "/analytics") continue;
+
       if (!stats[p]) stats[p] = { views: 0, totalTime: 0 };
 
       if (r.type === "page_view") stats[p].views++;

@@ -27,6 +27,9 @@ async function sendEvent(type, details = {}) {
 export const initTracker = () => {
   const page = window.location.pathname;
 
+  // Skip tracking on analytics page
+  if (page === "/analytics") return;
+
   // --- Log page view ---
   sendEvent("page_view", {
     page,

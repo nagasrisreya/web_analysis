@@ -24,7 +24,8 @@ function usePageTimer() {
     const now = Date.now();
     const timeSpent = (now - startTime) / 1000;
 
-    if (prevPage && timeSpent > 0.5) {
+    // Skip sending time spent data for analytics page
+    if (prevPage && prevPage !== "/analytics" && timeSpent > 0.5) {
       fetch(`${API_BASE}/track`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
