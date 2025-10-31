@@ -1,51 +1,82 @@
 import React, { useEffect, useState } from "react";
+import AnalyticsCard from "../components/AnalyticsCard";
+import AnalyticsTable from "../components/AnalyticsTable";
 
 export default function Analytics() {
   const [data, setData] = useState(null);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/analytics")
-      .then((r) => r.json())
-      .then(setData)
-      .catch(console.error);
+    const fetchAnalytics = async () => {
+      try {
+        const res = await fetch("/api/analytics");
+        if (!res.ok) throw new Error("Server returned an error");
+        const json = await res.json();
+        console.log("✅ Analytics data:", json);
+        setData(json);
+      } catch (err) {
+        console.error("❌ Error fetching analytics:", err);
+        setError("⚠️ Failed to load analytics. Check backend connection.");
+      }
+    };
+
+    fetchAnalytics();
+    const interval = setInterval(fetchAnalytics, 5000);
+    return () => clearInterval(interval);
   }, []);
 
-  if (!data) return <p className="p-4 text-gray-500">Loading analytics...</p>;
+  if (error)
+    return <p className="p-4 text-red-500 font-semibold text-center">{error}</p>;
+  if (!data)
+    return (
+      <p className="p-4 text-gray-500 text-center">Loading analytics...</p>
+    );
 
+  // The backend returns { totalPages, mostVisited, topPages }
+  // topPages is an array of {page, views, avgTime}
+  const topPages = data?.topPages || [];
+  const totalVisits = topPages.reduce((sum, p) => sum + (p.views || 0), 0);
+  const mostVisited = data?.mostVisited || { page: "N/A", views: 0, avgTime: "0" };
+  const mostVisitedPage = mostVisited.page;
+  const mostVisitedCount = mostVisited.views;
+  const avgTimeOnMostVisited = mostVisited.avgTime;
+
+  // For the table, use topPages
+  const pageVisits = Object.fromEntries(
+    topPages.map(p => [
+      p.page,
+      { count: p.views, totalTime: parseFloat(p.avgTime) * p.views }
+    ])
+  );
   return (
-    <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-bold">📊 Website Analytics</h1>
+    <div className="max-w-6xl mx-auto">
+      <div className="bg-gray-800 rounded-xl p-8 shadow-lg space-y-8">
+        <h1 className="text-4xl font-bold mb-4 text-center bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+          📈 Website Analytics Dashboard
+        </h1>
 
-      {data.mostVisited ? (
-        <div className="bg-blue-100 p-4 rounded-xl">
-          <h2 className="text-lg font-semibold">Most Visited Page</h2>
-          <p>🔗 {data.mostVisited.page}</p>
-          <p>👁️ {data.mostVisited.views} views</p>
-          <p>⏱️ Avg Time: {data.mostVisited.avgTime}s</p>
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <AnalyticsCard
+            title="Total Visits"
+            value={totalVisits}
+            color="bg-blue-600/30 border border-blue-400"
+          />
+          <AnalyticsCard
+            title="Most Visited Page"
+            value={mostVisitedPage || "N/A"}
+            color="bg-green-600/30 border border-green-400"
+          />
+          <AnalyticsCard
+            title="Avg Time on Most Visited"
+            value={`${avgTimeOnMostVisited}s`}
+            color="bg-purple-600/30 border border-purple-400"
+          />
         </div>
-      ) : (
-        <p>No data yet.</p>
-      )}
 
-      <h3 className="text-lg font-semibold">Top 5 Pages by Time Spent</h3>
-      <table className="w-full border-collapse border border-gray-300">
-        <thead className="bg-gray-200">
-          <tr>
-            <th className="border p-2">Page</th>
-            <th className="border p-2">Views</th>
-            <th className="border p-2">Avg Time (s)</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.topPages.map((p, i) => (
-            <tr key={i} className="text-center">
-              <td className="border p-2">{p.page}</td>
-              <td className="border p-2">{p.views}</td>
-              <td className="border p-2">{p.avgTime}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+        {/* Detailed Table */}
+        <AnalyticsTable pageVisits={pageVisits || {}} />
+      </div>
     </div>
   );
 }

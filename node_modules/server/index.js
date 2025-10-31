@@ -37,26 +37,7 @@ app.post("/api/track", (req, res) => {
   res.json({ message: "Event tracked successfully" });
 });
 
-// Analytics endpoint
-app.get("/api/analytics", (req, res) => {
-  const entries = Object.entries(analytics.pageVisits);
-  let mostVisited = ["N/A", { count: 0, totalTime: 0 }];
 
-  if (entries.length > 0) {
-    mostVisited = entries.reduce((a, b) => (b[1].count > a[1].count ? b : a));
-  }
-
-  res.json({
-    totalVisits: analytics.totalVisits,
-    pageVisits: analytics.pageVisits,
-    mostVisitedPage: mostVisited[0],
-    mostVisitedCount: mostVisited[1].count,
-    avgTimeOnMostVisited:
-      mostVisited[1].count > 0
-        ? (mostVisited[1].totalTime / mostVisited[1].count).toFixed(2)
-        : "N/A",
-  });
-});
 
 
 // Global error handler

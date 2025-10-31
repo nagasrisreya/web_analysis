@@ -1,9 +1,18 @@
 import { useState, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route, Link, useLocation } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Link,
+  useLocation,
+} from "react-router-dom";
 import { initTracker } from "./utils/tracker";
+import Home from "./pages/Home";
+import Product from "./pages/Product";
+import About from "./pages/About";
+import Analytics from "./pages/Analytics";
 
-// Auto-detect backend API base
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+const API_BASE = import.meta.env.VITE_API_URL || "/api";
 
 /* ---------------- Page Time Tracker Hook ---------------- */
 function usePageTimer() {
@@ -13,142 +22,30 @@ function usePageTimer() {
   useEffect(() => {
     const prevPage = sessionStorage.getItem("currentPage");
     const now = Date.now();
-    const duration = (now - startTime) / 1000; // seconds
+    const timeSpent = (now - startTime) / 1000;
 
-    // send duration for previous page
-    if (prevPage && duration > 0.5) {
+    if (prevPage && timeSpent > 0.5) {
       fetch(`${API_BASE}/track`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ page: prevPage, duration }),
+        body: JSON.stringify({ page: prevPage, timeSpent }),
       }).catch((e) => console.error("Error sending duration:", e));
     }
 
-    // update session for current page
     sessionStorage.setItem("currentPage", location.pathname);
     setStartTime(now);
   }, [location]);
 }
 
-/* ---------------- Dummy Pages ---------------- */
-function Home() {
-  return (
-    <div>
-      <h2>🏠 Home Page</h2>
-      <p>Welcome to our demo analytics site. Click around to generate data!</p>
-      <button onClick={() => alert("Home button clicked!")}>Click Me</button>
-    </div>
-  );
-}
 
-function Products() {
-  return (
-    <div>
-      <h2>🛍️ Products Page</h2>
-      <p>Click buttons here to simulate interactions!</p>
-      <button onClick={() => alert("Product added to cart!")}>Add to Cart</button>
-    </div>
-  );
-}
 
-function About() {
-  return (
-    <div>
-      <h2>ℹ️ About Page</h2>
-      <p>This page helps test navigation and analytics tracking.</p>
-    </div>
-  );
-}
-
-/* ---------------- Analytics Page ---------------- */
-function Analytics() {
-  const [data, setData] = useState(null);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    const fetchAnalytics = async () => {
-      try {
-        const res = await fetch(`${API_BASE}/analytics`);
-        if (!res.ok) throw new Error(`Server returned ${res.status}`);
-        const json = await res.json();
-        setData(json);
-        setError("");
-      } catch (e) {
-        console.error("Error fetching analytics:", e);
-        setError("Failed to connect to backend. Make sure the server is running.");
-      }
-    };
-
-    fetchAnalytics();
-    const i = setInterval(fetchAnalytics, 5000);
-    return () => clearInterval(i);
-  }, []);
-
-  if (error) return <p style={{ color: "tomato" }}>{error}</p>;
-  if (!data) return <p>Loading analytics...</p>;
-
-  return (
-    <div>
-      <h2>📊 Website Analytics Summary</h2>
-      <p>📁 Total Pages Tracked: {data.totalPages}</p>
-
-      {data.mostVisited ? (
-        <div
-          style={{
-            marginTop: "1rem",
-            padding: "1rem",
-            background: "#181818",
-            color: "#eee",
-            borderRadius: "10px",
-          }}
-        >
-          <h3>🏆 Most Visited Page</h3>
-          <p>🔗 {data.mostVisited.page}</p>
-          <p>👁️ Views: {data.mostVisited.views}</p>
-          <p>⏱️ Avg Time: {data.mostVisited.avgTime}s</p>
-        </div>
-      ) : (
-        <p>No analytics data yet.</p>
-      )}
-
-      <h3 style={{ marginTop: "1.5rem" }}>Top 5 Pages by Time Spent</h3>
-      <table
-        border="1"
-        cellPadding="6"
-        style={{
-          borderCollapse: "collapse",
-          background: "#202020",
-          color: "#ddd",
-        }}
-      >
-        <thead style={{ background: "#111" }}>
-          <tr>
-            <th>Page</th>
-            <th>Views</th>
-            <th>Avg Time (s)</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.topPages.map((p, i) => (
-            <tr key={i}>
-              <td>{p.page}</td>
-              <td>{p.views}</td>
-              <td>{p.avgTime}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
-/* ---------------- Wrapper that uses Router Context ---------------- */
+/* ---------------- Wrapper for Router Context ---------------- */
 function PageTrackerWrapper() {
-  usePageTimer(); // now safely inside Router context
+  usePageTimer();
   return (
     <Routes>
       <Route path="/" element={<Home />} />
-      <Route path="/products" element={<Products />} />
+      <Route path="/products" element={<Product />} />
       <Route path="/about" element={<About />} />
       <Route path="/analytics" element={<Analytics />} />
     </Routes>
@@ -181,6 +78,7 @@ function App() {
       });
       setType("");
       setData("");
+      alert("Event sent successfully!");
     } catch (err) {
       alert("Failed to send event — check backend connection!");
       console.error(err);
@@ -189,33 +87,68 @@ function App() {
 
   return (
     <Router>
-      <div style={{ padding: "2rem", fontFamily: "monospace", color: "#fff" }}>
-        <h1>📈 Big Data Web Analytics Demo</h1>
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white font-sans">
+        <div className="max-w-7xl mx-auto px-6 py-8">
+          <header className="text-center mb-8">
+            <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent mb-4">
+              📈 Big Data Web Analytics Demo
+            </h1>
+            <p className="text-gray-300 text-lg">Track user interactions and page analytics in real-time</p>
+          </header>
 
-        <nav style={{ marginBottom: "1rem" }}>
-          <Link to="/">Home</Link> |{" "}
-          <Link to="/products">Products</Link> |{" "}
-          <Link to="/about">About</Link> |{" "}
-          <Link to="/analytics">Analytics</Link>
-        </nav>
+          <nav className="flex justify-center space-x-6 mb-8">
+            <Link
+              to="/"
+              className="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors duration-200 text-white font-medium"
+            >
+              🏠 Home
+            </Link>
+            <Link
+              to="/products"
+              className="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors duration-200 text-white font-medium"
+            >
+              🛍️ Products
+            </Link>
+            <Link
+              to="/about"
+              className="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors duration-200 text-white font-medium"
+            >
+              ℹ️ About
+            </Link>
+            <Link
+              to="/analytics"
+              className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 transition-colors duration-200 text-white font-medium"
+            >
+              📊 Analytics
+            </Link>
+          </nav>
 
-        <div style={{ marginBottom: "1.5rem" }}>
-          <input
-            placeholder="Event Type (e.g. custom_event)"
-            value={type}
-            onChange={(e) => setType(e.target.value)}
-            style={{ marginRight: "10px" }}
-          />
-          <input
-            placeholder="Data (optional)"
-            value={data}
-            onChange={(e) => setData(e.target.value)}
-            style={{ marginRight: "10px" }}
-          />
-          <button onClick={sendEvent}>Send Event</button>
+          <div className="bg-gray-800 rounded-xl p-6 mb-8 shadow-lg">
+            <h2 className="text-2xl font-semibold mb-4 text-center">Send Custom Event</h2>
+            <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
+              <input
+                placeholder="Event Type (e.g. custom_event)"
+                value={type}
+                onChange={(e) => setType(e.target.value)}
+                className="px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 focus:border-blue-500 focus:outline-none text-white placeholder-gray-400 flex-1 max-w-xs"
+              />
+              <input
+                placeholder="Data (optional)"
+                value={data}
+                onChange={(e) => setData(e.target.value)}
+                className="px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 focus:border-blue-500 focus:outline-none text-white placeholder-gray-400 flex-1 max-w-xs"
+              />
+              <button
+                onClick={sendEvent}
+                className="px-6 py-2 bg-green-600 hover:bg-green-500 rounded-lg font-medium transition-colors duration-200"
+              >
+                Send Event
+              </button>
+            </div>
+          </div>
+
+          <PageTrackerWrapper />
         </div>
-
-        <PageTrackerWrapper />
       </div>
     </Router>
   );
