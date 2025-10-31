@@ -127,6 +127,8 @@ router.get("/analytics", async (req, res) => {
     const rows = await getRecentEvents(2000);
     const stats = {};
 
+    const allowedPages = ["/", "/products", "/about"];
+
     for (const r of rows) {
       let d = {};
       try {
@@ -137,8 +139,8 @@ router.get("/analytics", async (req, res) => {
 
       const p = d.page || d.url || r.page || d.path || "unknown";
 
-      // Skip analytics page from stats calculation
-      if (p === "/analytics") continue;
+      // Skip pages not in the allowed list
+      if (!allowedPages.includes(p)) continue;
 
       if (!stats[p]) stats[p] = { views: 0, totalTime: 0 };
 

@@ -6,6 +6,16 @@ export default function Analytics() {
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
 
+  // Function to get display name for pages
+  const getDisplayName = (page) => {
+    const mapping = {
+      "/": "Home",
+      "/products": "Products",
+      "/about": "About"
+    };
+    return mapping[page] || page;
+  };
+
   useEffect(() => {
     const fetchAnalytics = async () => {
       try {
@@ -37,14 +47,14 @@ export default function Analytics() {
   const topPages = data?.topPages || [];
   const totalVisits = topPages.reduce((sum, p) => sum + (p.views || 0), 0);
   const mostVisited = data?.mostVisited || { page: "N/A", views: 0, avgTime: "0" };
-  const mostVisitedPage = mostVisited.page;
+  const mostVisitedPage = getDisplayName(mostVisited.page);
   const mostVisitedCount = mostVisited.views;
   const avgTimeOnMostVisited = mostVisited.avgTime;
 
-  // For the table, use topPages
+  // For the table, use topPages with display names
   const pageVisits = Object.fromEntries(
     topPages.map(p => [
-      p.page,
+      getDisplayName(p.page),
       { count: p.views, totalTime: parseFloat(p.avgTime) * p.views }
     ])
   );
