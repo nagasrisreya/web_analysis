@@ -1,10 +1,13 @@
-import React, { useEffect } from "react";
+// -import React, { useEffect } from "react";
+import React from "react";
+import { useNavigate } from "react-router-dom";
+ 
+ export default function Home() {
+  const navigate = useNavigate();
 
-export default function Home() {
-  const handleClick = () => {
-    alert("You clicked Explore Products!");
-  };
-
+   const handleClick = () => {
+    navigate("/products");
+   };
   return (
     <div className="max-w-4xl mx-auto bg-gray-800 rounded-xl p-8 shadow-lg text-center">
       <div className="mb-6">
