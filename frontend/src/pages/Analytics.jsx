@@ -21,6 +21,7 @@ export default function Analytics() {
   const [timeSeries, setTimeSeries] = useState(null);
   const [error, setError] = useState("");
   const [chartType, setChartType] = useState("avg"); // 'avg' or 'total'
+  const [lineChartTypes, setLineChartTypes] = useState({}); // per page: 'visits' or 'time'
 
   // Function to get display name for pages
   const getDisplayName = (page) => {
@@ -63,6 +64,12 @@ export default function Analytics() {
         const json = await res.json();
         console.log("✅ Time-series data:", json);
         setTimeSeries(json);
+        // Initialize line chart types to 'visits' for each page
+        const initialTypes = {};
+        Object.keys(json).forEach(page => {
+          initialTypes[page] = 'visits';
+        });
+        setLineChartTypes(initialTypes);
       } catch (err) {
         console.error("❌ Error fetching time-series:", err);
       }
@@ -226,77 +233,50 @@ export default function Analytics() {
               Activity Over Time
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {Object.entries(timeSeries).map(([page, data]) => (
-                <div key={page} className="bg-gray-700 rounded-lg p-6">
-                  <h3 className="text-lg font-semibold mb-4 text-white">
-                    {getDisplayName(page)} - Visits Over Time
-                  </h3>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={data}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                      <XAxis
-                        dataKey="time"
-                        stroke="#9CA3AF"
-                        tickFormatter={(value) => value.split('-')[1]} // Show hour
-                      />
-                      <YAxis stroke="#9CA3AF" />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: "#1F2937",
-                          border: "none",
-                          borderRadius: "8px",
-                        }}
-                        labelStyle={{ color: "#F3F4F6" }}
-                        labelFormatter={(value) => `Hour: ${value.split('-')[1]}`}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="visits"
-                        stroke="#3B82F6"
-                        strokeWidth={2}
-                        dot={{ fill: "#3B82F6" }}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              ))}
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {Object.entries(timeSeries).map(([page, data]) => (
-                <div key={page} className="bg-gray-700 rounded-lg p-6">
-                  <h3 className="text-lg font-semibold mb-4 text-white">
-                    {getDisplayName(page)} - Time Spent Over Time
-                  </h3>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={data}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                      <XAxis
-                        dataKey="time"
-                        stroke="#9CA3AF"
-                        tickFormatter={(value) => value.split('-')[1]} // Show hour
-                      />
-                      <YAxis stroke="#9CA3AF" />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: "#1F2937",
-                          border: "none",
-                          borderRadius: "8px",
-                        }}
-                        labelStyle={{ color: "#F3F4F6" }}
-                        labelFormatter={(value) => `Hour: ${value.split('-')[1]}`}
-                        formatter={(value) => [formatTime(value), "Time Spent"]}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="totalTime"
-                        stroke="#10B981"
-                        strokeWidth={2}
-                        dot={{ fill: "#10B981" }}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              ))}
+              {Object.entries(timeSeries).map(([page, data]) => {
+                const currentType = lineChartTypes[page] || 'visits';
+                return (
+                  <div key={page} className="bg-gray-700 rounded-lg p-6 relative">
+                    <button
+                      onClick={() => setLineChartTypes(prev => ({...prev, [page]: prev[page] === 'visits' ? 'time' : 'visits'}))}
+                      className="absolute top-0 right-0 px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition z-10 shadow-md"
+                    >
+                      {currentType === 'visits' ? 'Time Spent' : 'Visits'}
+                    </button>
+                    <h3 className="text-lg font-semibold text-white text-center mt-6 mb-4">
+                      {getDisplayName(page)} - {currentType === 'visits' ? 'Visits' : 'Time Spent'} Over Time
+                    </h3>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <LineChart data={data}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                        <XAxis
+                          dataKey="time"
+                          stroke="#9CA3AF"
+                          tickFormatter={(value) => value.split('-')[1]} // Show hour
+                        />
+                        <YAxis stroke="#9CA3AF" />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: "#1F2937",
+                            border: "none",
+                            borderRadius: "8px",
+                          }}
+                          labelStyle={{ color: "#F3F4F6" }}
+                          labelFormatter={(value) => `Hour: ${value.split('-')[1]}`}
+                          formatter={currentType === 'time' ? (value) => [formatTime(value), "Time Spent"] : undefined}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey={currentType === 'visits' ? 'visits' : 'totalTime'}
+                          stroke={currentType === 'visits' ? '#3B82F6' : '#10B981'}
+                          strokeWidth={2}
+                          dot={{ fill: currentType === 'visits' ? '#3B82F6' : '#10B981' }}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
