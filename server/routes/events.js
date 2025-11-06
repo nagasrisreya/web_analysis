@@ -182,6 +182,61 @@ router.get("/analytics", async (req, res) => {
 });
 
 /* -------------------------------------------------------------------------- */
+/* GET /api/time-series — Time-series analytics per page                       */
+/* -------------------------------------------------------------------------- */
+router.get("/time-series", async (req, res) => {
+  try {
+    const rows = await getRecentEvents(5000);
+    const timeSeries = {};
+    const allowedPages = ["/", "/products", "/about"];
+
+    rows.forEach((r) => {
+      let d = {};
+      try {
+        d = typeof r.data === "string" ? JSON.parse(r.data) : r.data;
+      } catch {
+        d = {};
+      }
+
+      const p = d.page || d.url || r.page || d.path || "unknown";
+      if (!allowedPages.includes(p)) return;
+
+      const timestamp = new Date(r.timestamp);
+      const hour = timestamp.getHours();
+      const date = timestamp.toISOString().split('T')[0];
+      const key = `${date}-${hour}`;
+
+      if (!timeSeries[p]) timeSeries[p] = {};
+      if (!timeSeries[p][key]) timeSeries[p][key] = { visits: 0, totalTime: 0 };
+
+      if (r.type === "page_view") timeSeries[p][key].visits++;
+      if (r.type === "time_on_page") {
+        const raw = d.duration ?? d.time ?? d.timeSpent ?? d.details?.duration;
+        if (raw != null && !isNaN(Number(raw))) {
+          let n = Number(raw);
+          if (n > 10000) n = n / 1000;
+          timeSeries[p][key].totalTime += n;
+        }
+      }
+    });
+
+    const result = {};
+    for (const page in timeSeries) {
+      result[page] = Object.entries(timeSeries[page]).map(([time, data]) => ({
+        time,
+        visits: data.visits,
+        totalTime: data.totalTime,
+      })).sort((a, b) => a.time.localeCompare(b.time));
+    }
+
+    res.json(result);
+  } catch (err) {
+    console.error("❌ Error fetching time-series:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* -------------------------------------------------------------------------- */
 /* GET /api/recent — Get most recent 10 events                                 */
 /* -------------------------------------------------------------------------- */
 router.get("/recent", async (req, res) => {
