@@ -46,7 +46,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: "Something went wrong" });
 });
 
-const PORT = process.env.PORT || 5000; // ✅ Change to 5000 to match frontend
+const PORT = process.env.PORT || 5001; // ✅ Change to 5001 to avoid conflict
 app.listen(PORT, () =>
   console.log(`🚀 Server listening at http://localhost:${PORT}`)
 );

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import AnalyticsCard from "../components/AnalyticsCard";
 import AnalyticsTable from "../components/AnalyticsTable";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 
 export default function Analytics() {
   const [data, setData] = useState(null);
@@ -72,7 +73,7 @@ export default function Analytics() {
         <h1 className="text-4xl font-bold mb-4 text-center bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
           📈 Website Analytics Dashboard
         </h1>
-
+        
         {/* Summary Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
           <AnalyticsCard
@@ -94,6 +95,59 @@ export default function Analytics() {
 
         {/* Detailed Table */}
         <AnalyticsTable pageVisits={pageVisits || {}} />
+        
+        {/* Charts Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Bar Chart for Page Visits */}
+          <div className="bg-gray-700 rounded-lg p-6">
+            <h2 className="text-xl font-semibold mb-4 text-white">Page Visits</h2>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={topPages.map(p => ({ name: getDisplayName(p.page), visits: p.views }))}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis dataKey="name" stroke="#9CA3AF" />
+                <YAxis stroke="#9CA3AF" />
+                <Tooltip
+                  contentStyle={{ backgroundColor: '#1F2937', border: 'none', borderRadius: '8px' }}
+                  labelStyle={{ color: '#F3F4F6' }}
+                />
+                <Bar dataKey="visits" fill="#3B82F6" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Pie Chart for Time Distribution */}
+          <div className="bg-gray-700 rounded-lg p-6">
+            <h2 className="text-xl font-semibold mb-4 text-white">Time Spent Distribution</h2>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={topPages.map(p => ({
+                    name: getDisplayName(p.page),
+                    value: parseFloat(p.avgTime),
+                    fill: ['#3B82F6', '#10B981', '#F59E0B'][topPages.indexOf(p) % 3]
+                  }))}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {topPages.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={['#3B82F6', '#10B981', '#F59E0B'][index % 3]} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  contentStyle={{ backgroundColor: '#87a2c8ff', border: 'none', borderRadius: '8px' }}
+                  labelStyle={{ color: '#F3F4F6' }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        
       </div>
     </div>
   );

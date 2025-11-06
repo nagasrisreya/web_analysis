@@ -139,7 +139,7 @@ router.get("/analytics", async (req, res) => {
 
       const p = d.page || d.url || r.page || d.path || "unknown";
 
-      // Skip pages not in the allowed list
+      // Skip pages not in the allowed list (including /analytics)
       if (!allowedPages.includes(p)) continue;
 
       if (!stats[p]) stats[p] = { views: 0, totalTime: 0 };
