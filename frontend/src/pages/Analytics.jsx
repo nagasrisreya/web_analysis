@@ -1,18 +1,30 @@
 import React, { useEffect, useState } from "react";
 import AnalyticsCard from "../components/AnalyticsCard";
 import AnalyticsTable from "../components/AnalyticsTable";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+} from "recharts";
 
 export default function Analytics() {
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
+  const [chartType, setChartType] = useState("avg"); // 'avg' or 'total'
 
   // Function to get display name for pages
   const getDisplayName = (page) => {
     const mapping = {
       "/": "Home",
       "/products": "Products",
-      "/about": "About"
+      "/about": "About",
     };
     return mapping[page] || page;
   };
@@ -22,7 +34,9 @@ export default function Analytics() {
     const hrs = Math.floor(seconds / 3600);
     const mins = Math.floor((seconds % 3600) / 60);
     const secs = Math.floor(seconds % 60);
-    return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    return `${hrs.toString().padStart(2, "0")}:${mins
+      .toString()
+      .padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
   useEffect(() => {
@@ -45,35 +59,36 @@ export default function Analytics() {
   }, []);
 
   if (error)
-    return <p className="p-4 text-red-500 font-semibold text-center">{error}</p>;
+    return (
+      <p className="p-4 text-red-500 font-semibold text-center">{error}</p>
+    );
   if (!data)
     return (
       <p className="p-4 text-gray-500 text-center">Loading analytics...</p>
     );
 
   // The backend returns { totalPages, mostVisited, topPages }
-  // topPages is an array of {page, views, avgTime}
   const topPages = data?.topPages || [];
   const totalVisits = topPages.reduce((sum, p) => sum + (p.views || 0), 0);
-  const mostVisited = data?.mostVisited || { page: "N/A", views: 0, avgTime: "0" };
+  const mostVisited =
+    data?.mostVisited || { page: "N/A", views: 0, avgTime: "0" };
   const mostVisitedPage = getDisplayName(mostVisited.page);
-  const mostVisitedCount = mostVisited.views;
   const avgTimeOnMostVisited = mostVisited.avgTime;
 
-  // For the table, use topPages with display names
   const pageVisits = Object.fromEntries(
-    topPages.map(p => [
+    topPages.map((p) => [
       getDisplayName(p.page),
-      { count: p.views, totalTime: parseFloat(p.avgTime) * p.views }
+      { count: p.views, totalTime: parseFloat(p.avgTime) * p.views },
     ])
   );
+
   return (
     <div className="max-w-6xl mx-auto">
       <div className="bg-gray-800 rounded-xl p-8 shadow-lg space-y-8">
         <h1 className="text-4xl font-bold mb-4 text-center bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
           📈 Website Analytics Dashboard
         </h1>
-        
+
         {/* Summary Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
           <AnalyticsCard
@@ -95,20 +110,31 @@ export default function Analytics() {
 
         {/* Detailed Table */}
         <AnalyticsTable pageVisits={pageVisits || {}} />
-        
+
         {/* Charts Section */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Bar Chart for Page Visits */}
           <div className="bg-gray-700 rounded-lg p-6">
-            <h2 className="text-xl font-semibold mb-4 text-white">Page Visits</h2>
+            <h2 className="text-xl font-semibold mb-4 text-white">
+              Page Visits
+            </h2>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={topPages.map(p => ({ name: getDisplayName(p.page), visits: p.views }))}>
+              <BarChart
+                data={topPages.map((p) => ({
+                  name: getDisplayName(p.page),
+                  visits: p.views,
+                }))}
+              >
                 <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                 <XAxis dataKey="name" stroke="#9CA3AF" />
                 <YAxis stroke="#9CA3AF" />
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#1F2937', border: 'none', borderRadius: '8px' }}
-                  labelStyle={{ color: '#F3F4F6' }}
+                  contentStyle={{
+                    backgroundColor: "#1F2937",
+                    border: "none",
+                    borderRadius: "8px",
+                  }}
+                  labelStyle={{ color: "#F3F4F6" }}
                 />
                 <Bar dataKey="visits" fill="#3B82F6" />
               </BarChart>
@@ -116,38 +142,63 @@ export default function Analytics() {
           </div>
 
           {/* Pie Chart for Time Distribution */}
-          <div className="bg-gray-700 rounded-lg p-6">
-            <h2 className="text-xl font-semibold mb-4 text-white">Time Spent Distribution</h2>
+          <div className="bg-gray-700 rounded-lg p-6 relative">
+            {/* Button aligned top-left */}
+            <button
+              onClick={() =>
+                setChartType(chartType === "avg" ? "total" : "avg")
+              }
+              className="absolute top-0 right-0 px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition z-10 shadow-md"
+            >
+              {chartType === "avg" ? "Average Time" : "Total Time"}
+            </button>
+
+            <h2 className="text-xl font-semibold text-white text-center mt-6 mb-4">
+              {chartType === "avg"
+                ? "Avg Time Distribution"
+                : "Total Time Distribution"}
+            </h2>
+
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
-                  data={topPages.map(p => ({
+                  data={topPages.map((p) => ({
                     name: getDisplayName(p.page),
-                    value: parseFloat(p.avgTime),
-                    fill: ['#3B82F6', '#10B981', '#F59E0B'][topPages.indexOf(p) % 3]
+                    value:
+                      chartType === "avg"
+                        ? parseFloat(p.avgTime)
+                        : parseFloat(p.avgTime) * p.views,
                   }))}
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  label={({ name, percent }) =>
+                    `${name} ${(percent * 100).toFixed(0)}%`
+                  }
                   outerRadius={80}
                   fill="#8884d8"
                   dataKey="value"
                 >
                   {topPages.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={['#3B82F6', '#10B981', '#F59E0B'][index % 3]} />
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={["#3B82F6", "#10B981", "#F59E0B"][index % 3]}
+                    />
                   ))}
                 </Pie>
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#87a2c8ff', border: 'none', borderRadius: '8px' }}
-                  labelStyle={{ color: '#F3F4F6' }}
+                  contentStyle={{
+                    backgroundColor: "#a0bee2ff",
+                    border: "none",
+                    borderRadius: "8px",
+                  }}
+                  labelStyle={{ color: "#F3F4F6" }}
+                  formatter={(value) => [formatTime(value), "Time Spent"]}
                 />
               </PieChart>
             </ResponsiveContainer>
           </div>
         </div>
-
-        
       </div>
     </div>
   );
